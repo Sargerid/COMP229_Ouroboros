@@ -1,8 +1,37 @@
-import React from 'react'
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Login.css';//different css
 //import './Signup.css'; // Link to your CSS file
 
 function Signup() {
+
+  const navigateTo = useNavigate();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
+
+  const handleSignUp = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', 
+        body: JSON.stringify({ name: username, email, password }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Invalid credentials'); 
+      }
+
+      const user = await response.json();
+      console.log('User created:', user);
+      navigateTo('/signin');
+    } catch (error) {
+      console.error('Sign up failed:', error.message);
+    }
+  }
   return (
     <div className="yourbigdiv">
     <div class="login-signup">
@@ -15,25 +44,25 @@ function Signup() {
       <div class="input">
     <label className="username" id="usernametext">Username:</label>
   
-    <input type="text" id="username" name="username"/>
+    <input type="text" id="username"  name="username" value={username} onChange={(e) => setUsername(e.target.value)}/>
       </div>
   
   
   
       <div class="input">
     <label className="password" id="">Password:</label>
-    <input type="text" id="password" name="password"/> 
+    <input type="text" id="password" name="password" value={password} onChange={(e) => setPassword(e.target.value)}/> 
     </div>
   
     <div class="input">
     <label className="email" id="emailtext">Email:</label>
-    <input type="text" id="email" name="email"/> 
+    <input type="text" id="email" name="email" value={email} onChange={(e) => setEmail(e.target.value)}/> 
     </div>
   <div id="buttons">
   
   
     
-    <input class="button" id="signupbutton" type="button" value="Sign up"/>
+    <input class="button" id="signupbutton" type="button" value="Sign up" onClick={handleSignUp}/>
     </div>
   
   
