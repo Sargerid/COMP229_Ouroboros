@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
 
 function Signin() {
+  const navigateTo = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
@@ -11,26 +14,23 @@ function Signin() {
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // Include credentials for CORS with cookies
+        credentials: 'include', 
         body: JSON.stringify({ email: username, password }),
       });
 
       if (!response.ok) {
-        throw new Error('Invalid credentials'); // Handle specific errors based on your backend response
+        throw new Error('Invalid credentials'); 
       }
 
-      // Handle successful login, e.g., redirect to another page or update UI
       const user = await response.json();
       console.log('User logged in:', user);
-
+      navigateTo('/ticket');
     } catch (error) {
       console.error('Login failed:', error.message);
-      // Handle login failure, e.g., display an error message to the user
     }
   };
 
   return (
-    // Your existing JSX structure with some modifications for state and event handling
     <div className="yourbigdiv">
       <div className="login-signup">
         <div id="background">
