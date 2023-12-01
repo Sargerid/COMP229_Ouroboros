@@ -1,14 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Ticket.css';
 
 function Ticket() {
-  const data = [
-    { number: 1, description: 'Description 1', dateCreated: '2023-11-01', dateModified: '2023-11-10', photo: 'Photo URL', postBy: 'User 1', urgency: 'High', status: 'Open' },
-    { number: 2, description: 'Description 2', dateCreated: '2023-11-05', dateModified: '2023-11-12', photo: 'Photo URL', postBy: 'User 2', urgency: 'Medium', status: 'InProgress' },
-    { number: 3, description: 'Description 1', dateCreated: '2023-11-01', dateModified: '2023-11-10', photo: 'Photo URL', postBy: 'User 1', urgency: 'High', status: 'Closed' },
-    // Add more data objects as needed
-  ];
-
+  const [tickets, setTickets] = useState([]);
   const [formData, setFormData] = useState({
     description: '',
     dateCreated: '',
@@ -18,6 +12,27 @@ function Ticket() {
     Status: '',
     urgency: '',
   });
+
+  useEffect(() => {
+    // Fetch tickets from the server
+    const fetchTickets = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/tickets');
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Fetched tickets data:', data);
+          setTickets(data.result);
+        } else {
+          console.error('Failed to fetch tickets:', response.statusText);
+        }
+      } catch (error) {
+        console.error('Error fetching tickets:', error.message);
+      }
+    };
+  
+    // Call the fetchTickets function
+    fetchTickets();
+  }, []); // Run the effect only once when the component mounts
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -40,7 +55,6 @@ function Ticket() {
       urgency: '',
     });
   };
-
   return (
     <div className='TicketPage'>
       <header>
@@ -74,25 +88,26 @@ function Ticket() {
             </tr>
           </thead>
           <tbody>
-            {data.map((item, index) => (
-              <tr key={index}>
-                <td>
-                  <div className="rowData">
-                    <button>Remove</button>
-                    <button>Modify</button>
-                  </div>
-                </td>
-                <td>{item.number}</td>
-                <td>{item.description}</td>
-                <td>{item.dateCreated}</td>
-                <td>{item.dateModified}</td>
-                <td>{item.photo}</td>
-                <td>{item.postBy}</td>
-                <td>{item.status}</td>
-                <td>{item.urgency}</td>
-              </tr>
-            ))}
-          </tbody>
+        {tickets.map((ticket, index) => (
+          <tr key={index}>
+            {/* Render ticket data in table rows */}
+            <td>
+              <div className="rowData">
+                <button>Remove</button>
+                <button>Modify</button>
+              </div>
+            </td>
+            <td>{ticket._id}</td>
+            <td>{ticket.description}</td>
+            <td>{ticket.created}</td>
+            <td>{ticket.dateModified}</td>
+            <td><img src={`data:${ticket.photo.contentType};base64,${ticket.photo.data}`} alt="Ticket Photo" /></td>
+            <td>{ticket.postedBy}</td>
+            <td>{ticket.status}</td>
+            <td>{ticket.urgency}</td>
+          </tr>
+        ))}
+      </tbody>
         </table>
 
         <form onSubmit={handleSubmit} className="form-container">
