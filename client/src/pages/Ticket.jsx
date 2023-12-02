@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; 
 import './Ticket.css';
 
 function Ticket() {
@@ -13,26 +14,46 @@ function Ticket() {
     urgency: '',
   });
 
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  const history = useNavigate();
+  const getCookie = (name) => {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.startsWith(name + '=')) {
+        return cookie.substring(name.length + 1);
+      }
+    }
+    return null;
+  };
+
   useEffect(() => {
-    // Fetch tickets from the server
-    const fetchTickets = async () => {
+    const checkAuthAndFetchTickets = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/tickets');
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Fetched tickets data:', data);
-          setTickets(data.result);
+        const token = getCookie('access_token');
+  
+        if (token) {
+          setIsAuthenticated(true);
+          const response = await fetch('http://localhost:3000/api/tickets');
+          if (response.ok) {
+            const data = await response.json();
+            console.log('Fetched tickets data:', data);
+            setTickets(data.result);
+          } else {
+            console.error('Failed to fetch tickets:', response.statusText);
+          }
         } else {
-          console.error('Failed to fetch tickets:', response.statusText);
+          setIsAuthenticated(false);
+          history('/signin');
         }
       } catch (error) {
-        console.error('Error fetching tickets:', error.message);
+        console.error('Error during authentication and ticket fetch:', error.message);
       }
     };
   
-    // Call the fetchTickets function
-    fetchTickets();
-  }, []); // Run the effect only once when the component mounts
+    checkAuthAndFetchTickets();
+  }, [history]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -55,6 +76,13 @@ function Ticket() {
       urgency: '',
     });
   };
+
+  const handleSignOut = () => {
+    document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    setIsAuthenticated(false);
+    history('/signin');
+  };
+
   return (
     <div className='TicketPage'>
       <header>
@@ -69,6 +97,11 @@ function Ticket() {
           <li><a href="/profile">Profile</a></li>
           <li><a href="/ticket">Ticket Management</a></li>
           <li><a href="/signin">Sign in</a></li>
+          {isAuthenticated && (
+        <button onClick={handleSignOut} className="sign-out-button">
+          Sign Out
+        </button>
+      )}
         </ul>
       </nav>
       <main>

@@ -1,12 +1,37 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import reactLogo from '../assets/react.svg'
 import viteLogo from '/vite.svg'
+import { useNavigate } from 'react-router-dom';
 import './Home.css'
 
 function Home() {
-    const [count, setCount] = useState(0)
+    const [count, setCount] = useState(0);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const history = useNavigate();
 
-    const [isAuthorized, setIsAuthorized] = useState(true)
+    const handleSignOut = () => {
+        document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        setIsAuthenticated(false);
+        history('/signin');
+    };
+
+    const getCookie = (name) => {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.startsWith(name + '=')) {
+            return cookie.substring(name.length + 1);
+          }
+        }
+        return null;
+      };
+
+    useEffect(() => {
+        if (getCookie('access_token')) {
+            setIsAuthenticated(true);
+        }
+    });
+
 
     return (
         <div className='HomePage'>
@@ -18,9 +43,14 @@ function Home() {
 
                 <ul>
                     <li> <a href="/">Home Page </a></li>
-                    <li style={{display: isAuthorized ? "block" : "none"}}> <a href="/profile">Profile</a> </li>
-                    <li  style={{display: isAuthorized ? "block" : "none"}}> <a href="/ticket">Ticket Management</a></li>
+                    <li style={{display: isAuthenticated ? "block" : "none"}}> <a href="/profile">Profile</a> </li>
+                    <li  style={{display: isAuthenticated ? "block" : "none"}}> <a href="/ticket">Ticket Management</a></li>
                     <li> <a href="/signin">Sign in</a></li>
+                        {isAuthenticated && (
+                            <button onClick={handleSignOut} className="sign-out-button">
+                            Sign Out
+                            </button>
+                        )}
                 </ul>
             </nav>
             <main>
