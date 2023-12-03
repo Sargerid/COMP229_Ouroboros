@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Profile.css';
 
 function Profile() {
@@ -11,6 +12,9 @@ function Profile() {
   const [emailEditMode, setEmailEditMode] = useState(false);
   const [passwordEditMode, setPasswordEditMode] = useState(false);
   const [nameEditMode, setNameEditMode] = useState(false);
+
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const history = useNavigate();
 
   const [tickets, setTickets] = useState([
     {
@@ -79,6 +83,30 @@ function Profile() {
     setNameEditMode(false);
   };
 
+  const getCookie = (name) => {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.startsWith(name + '=')) {
+        return cookie.substring(name.length + 1);
+      }
+    }
+    return null;
+  };
+
+  useEffect(() => {
+    if (getCookie('access_token')) {
+        setIsAuthenticated(true);
+    }
+  });
+
+  const handleSignOut = () => {
+    document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    setIsAuthenticated(false);
+    history('/signin');
+  };
+
+
   return (
       <div className='ProfilePage'>
         <div>
@@ -90,11 +118,16 @@ function Profile() {
             <img className="logo" src="/Logo/1.png" alt="Logo" />
           </a>
           <ul>
-            <li><a href="/">Home Page</a></li>
-            <li><a href="/profile">Profile</a></li>
-            <li><a href="/ticket">Ticket Management</a></li>
-            <li><a href="/signin">Sign in</a></li>
-          </ul>
+                    <li> <a href="/">Home Page </a></li>
+                    <li style={{display: isAuthenticated ? "block" : "none"}}> <a href="/profile">Profile</a> </li>
+                    <li  style={{display: isAuthenticated ? "block" : "none"}}> <a href="/ticket">Ticket Management</a></li>
+                    <li style={{display: isAuthenticated ? "none" : "block"}}> <a href="/signin">Sign in</a></li>
+                        {isAuthenticated && (
+                            <button onClick={handleSignOut} className="sign-out-button">
+                            Sign Out
+                            </button>
+                        )}
+                </ul>
         </nav>
         <center><h2>YOUR PROFILE</h2></center>
         <center><label htmlFor="email">Email:</label>

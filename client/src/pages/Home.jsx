@@ -24,7 +24,7 @@ function Home() {
           }
         }
         return null;
-      };
+    };
 
     useEffect(() => {
         if (getCookie('access_token')) {
@@ -45,7 +45,7 @@ function Home() {
                     <li> <a href="/">Home Page </a></li>
                     <li style={{display: isAuthenticated ? "block" : "none"}}> <a href="/profile">Profile</a> </li>
                     <li  style={{display: isAuthenticated ? "block" : "none"}}> <a href="/ticket">Ticket Management</a></li>
-                    <li> <a href="/signin">Sign in</a></li>
+                    <li style={{display: isAuthenticated ? "none" : "block"}}> <a href="/signin">Sign in</a></li>
                         {isAuthenticated && (
                             <button onClick={handleSignOut} className="sign-out-button">
                             Sign Out

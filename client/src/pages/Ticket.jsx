@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom'; 
+import { jwtDecode } from "jwt-decode";
 import './Ticket.css';
+import { get } from 'mongoose';
 
 function Ticket() {
   const [tickets, setTickets] = useState([]);
@@ -35,13 +37,35 @@ function Ticket() {
   
         if (token) {
           setIsAuthenticated(true);
-          const response = await fetch('http://localhost:3000/api/tickets');
-          if (response.ok) {
-            const data = await response.json();
-            console.log('Fetched tickets data:', data);
-            setTickets(data.result);
+  
+          const decodedToken = jwtDecode(token);
+          console.log('Decoded token:', decodedToken);
+  
+          if (decodedToken) {
+            const userId = decodedToken._id;   
+            
+            getUserName(userId);
+
+            const response = await fetch('http://localhost:3000/api/tickets', {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+              },
+            });
+  
+            if (response.ok) {
+              const data = await response.json();
+              console.log('Fetched tickets data:', data);
+  
+              const userTickets = data.result.filter(ticket => ticket.postedBy === userId);
+  
+              setTickets(userTickets);
+            } else {
+              console.error('Failed to fetch tickets:', response.statusText);
+            }
           } else {
-            console.error('Failed to fetch tickets:', response.statusText);
+            console.error('Failed to decode token');
           }
         } else {
           setIsAuthenticated(false);
@@ -83,6 +107,45 @@ function Ticket() {
     history('/signin');
   };
 
+  //get the name of the user related to userId
+  const getUserName = async (userId) => {
+    try {
+      const token = getCookie('access_token');
+
+      if (token) {
+        const decodedToken = jwtDecode(token);
+        console.log('Decoded token:', decodedToken);
+
+        if (decodedToken) {
+          const response = await fetch(`http://localhost:3000/api/users/${userId}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log('Fetched user data:', data);
+
+            return data.result.name;
+          } else {
+            console.error('Failed to fetch user:', response.statusText);
+          }
+        } else {
+          console.error('Failed to decode token');
+        }
+      } else {
+        setIsAuthenticated(false);
+        history('/signin');
+      }
+    } catch (error) {
+      console.error('Error during authentication and user fetch:', error.message);
+    }
+  };
+
+
   return (
     <div className='TicketPage'>
       <header>
@@ -93,15 +156,14 @@ function Ticket() {
           <img className="logo" src="/Logo/1.png" alt="Logo" />
         </a>
         <ul>
-          <li><a href="/">Home Page</a></li>
-          <li><a href="/profile">Profile</a></li>
-          <li><a href="/ticket">Ticket Management</a></li>
-          <li><a href="/signin">Sign in</a></li>
-          {isAuthenticated && (
-        <button onClick={handleSignOut} className="sign-out-button">
-          Sign Out
-        </button>
-      )}
+          <li> <a href="/">Home Page </a></li>
+          <li style={{display: isAuthenticated ? "block" : "none"}}> <a href="/profile">Profile</a> </li>
+          <li  style={{display: isAuthenticated ? "block" : "none"}}> <a href="/ticket">Ticket Management</a></li>
+          <li style={{display: isAuthenticated ? "none" : "block"}}> <a href="/signin">Sign in</a></li>
+            {isAuthenticated && (
+              <button onClick={handleSignOut} className="sign-out-button">
+                Sign Out
+              </button>)}
         </ul>
       </nav>
       <main>
@@ -115,7 +177,7 @@ function Ticket() {
               <th>Date created</th>
               <th>Date Modified</th>
               <th>Photo</th>
-              <th>Post By</th>
+              <th>Posted By</th>
               <th>Status</th>
               <th>Urgency</th>
             </tr>
@@ -161,7 +223,7 @@ function Ticket() {
             <input type="text" name="photo" value={formData.photo} onChange={handleInputChange} className="form-input" />
           </label>
           <label className="form-label">
-            Post By:
+            Posted By:
             <input type="text" name="postBy" value={formData.postBy} onChange={handleInputChange} className="form-input" />
           </label>
           <label className="form-label">

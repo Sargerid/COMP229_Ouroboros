@@ -64,7 +64,7 @@ function jwtSign(obj) {
 }
 
 function createUserJwtToken(user) {
-    return jwtSign({ _id: user._id });
+    return jwtSign({ _id: user._id, name: user.name, email: user.email, role: user.role});
 }
 
 async function jwtAuthorization(req, res, next) {
