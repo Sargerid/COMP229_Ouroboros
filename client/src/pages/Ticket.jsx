@@ -6,15 +6,10 @@ import { get } from 'mongoose';
 
 function Ticket() {
   const [tickets, setTickets] = useState([]);
-  const [formData, setFormData] = useState({
-    description: '',
-    dateCreated: '',
-    dateModified: '',
-    photo: '',
-    postBy: '',
-    Status: '',
-    urgency: '',
-  });
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [photo, setPhoto] = useState(null);
+  const [urgency, setUrgency] = useState('');
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -42,10 +37,8 @@ function Ticket() {
           console.log('Decoded token:', decodedToken);
   
           if (decodedToken) {
-            const userId = decodedToken._id;   
-            
-            getUserName(userId);
-
+            const userId = decodedToken._id;
+  
             const response = await fetch('http://localhost:3000/api/tickets', {
               method: 'GET',
               headers: {
@@ -58,9 +51,17 @@ function Ticket() {
               const data = await response.json();
               console.log('Fetched tickets data:', data);
   
-              const userTickets = data.result.filter(ticket => ticket.postedBy === userId);
+              // Check if the user is an admin
+              const isAdmin = decodedToken.role === 'Admin';
   
-              setTickets(userTickets);
+              if (isAdmin) {
+                // If the user is an admin, set all tickets
+                setTickets(data.result);
+              } else {
+                // If the user is not an admin, filter tickets based on user ID
+                const userTickets = data.result.filter(ticket => ticket.postedBy === userId);
+                setTickets(userTickets);
+              }
             } else {
               console.error('Failed to fetch tickets:', response.statusText);
             }
@@ -80,72 +81,85 @@ function Ticket() {
   }, [history]);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+    const { name, value, type } = e.target;
+  
+    if (type === 'file') {
+      // Handle file input differently, e.g., convert to Base64
+      const file = e.target.files[0];
+  
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhoto(reader.result); // Update the 'photo' state with Base64 representation of the file
+      };
+  
+      reader.readAsDataURL(file);
+    } else {
+      // Handle other input types as usual
+      switch (name) {
+        case 'title':
+          setTitle(value);
+          break;
+        case 'description':
+          setDescription(value);
+          break;
+        case 'urgency':
+          setUrgency(value);
+          break;
+        default:
+          break;
+      }
+    }
   };
-
-  const handleSubmit = (e) => {
+  
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form data submitted:', formData);
-    setFormData({
-      description: '',
-      dateCreated: '',
-      dateModified: '',
-      photo: '',
-      postBy: '',
-      Status: '',
-      urgency: '',
-    });
+  
+    try {
+      const token = getCookie('access_token'); // Retrieve the token
+      //decode the token
+      const decodedToken = jwtDecode(token);
+      const userId = decodedToken._id;
+  
+      const response = await fetch('http://localhost:3000/api/tickets', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, // Use the retrieved token here
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          photo,
+          urgency,
+          postedBy: userId,
+        }),
+      });
+  
+      if (response.ok) {
+        const newTicket = await response.json();
+        console.log('New Ticket:', newTicket);
+    
+        setTitle('');
+        setDescription('');
+        setPhoto(null);
+        setUrgency('');
+        //refresh the page
+        window.location.reload();
+      } else {
+        console.error('Failed to create ticket:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error during ticket submission:', error.message);
+    }
   };
-
+  
   const handleSignOut = () => {
     document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     setIsAuthenticated(false);
     history('/signin');
   };
 
-  //get the name of the user related to userId
-  const getUserName = async (userId) => {
-    try {
-      const token = getCookie('access_token');
-
-      if (token) {
-        const decodedToken = jwtDecode(token);
-        console.log('Decoded token:', decodedToken);
-
-        if (decodedToken) {
-          const response = await fetch(`http://localhost:3000/api/users/${userId}`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
-            },
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            console.log('Fetched user data:', data);
-
-            return data.result.name;
-          } else {
-            console.error('Failed to fetch user:', response.statusText);
-          }
-        } else {
-          console.error('Failed to decode token');
-        }
-      } else {
-        setIsAuthenticated(false);
-        history('/signin');
-      }
-    } catch (error) {
-      console.error('Error during authentication and user fetch:', error.message);
-    }
-  };
-
-
+  
   return (
     <div className='TicketPage'>
       <header>
@@ -196,7 +210,7 @@ function Ticket() {
             <td>{ticket.description}</td>
             <td>{ticket.created}</td>
             <td>{ticket.dateModified}</td>
-            <td><img src={`data:${ticket.photo.contentType};base64,${ticket.photo.data}`} alt="Ticket Photo" /></td>
+            <td><img src={ticket.photo ? `data:${ticket.photo.contentType};base64,${ticket.photo.data}` : ''} alt="Ticket Photo" /></td>
             <td>{ticket.postedBy}</td>
             <td>{ticket.status}</td>
             <td>{ticket.urgency}</td>
@@ -206,70 +220,30 @@ function Ticket() {
         </table>
 
         <form onSubmit={handleSubmit} className="form-container">
-          <label className="form-label">
-            Description:
-            <input type="text" name="description" value={formData.description} onChange={handleInputChange} className="form-input" />
-          </label>
-          <label className="form-label">
-            Date Created:
-            <input type="date" name="dateCreated" value={formData.dateCreated} onChange={handleInputChange} className="form-input" />
-          </label>
-          <label className="form-label">
-            Date Modified:
-            <input type="date" name="dateModified" value={formData.dateModified} onChange={handleInputChange} className="form-input" />
-          </label>
-          <label className="form-label">
-            Photo:
-            <input type="text" name="photo" value={formData.photo} onChange={handleInputChange} className="form-input" />
-          </label>
-          <label className="form-label">
-            Posted By:
-            <input type="text" name="postBy" value={formData.postBy} onChange={handleInputChange} className="form-input" />
-          </label>
-          <label className="form-label">
-            Status:
-            <div className="Status-radio">
-              <label>
-                <input
-                  type="radio"
-                  name="Status"
-                  value="Open"
-                  checked={formData.Status === 'Open'}
-                  onChange={handleInputChange}
-                />
-                Open
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name="Status"
-                  value="InProgress"
-                  checked={formData.Status === 'InProgress'}
-                  onChange={handleInputChange}
-                />
-                InProgress
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name="Status"
-                  value="Closed"
-                  checked={formData.Status === 'Closed'}
-                  onChange={handleInputChange}
-                />
-                Closed
-              </label>
-            </div>
-          </label>
-          <label className="form-label">
-            Urgency:
-            <div className="urgency-radio">
+        <label className="form-label">
+          Title:
+          <input type="text" name="title" value={title} onChange={handleInputChange} className="form-input" />
+        </label>
+        <label className="form-label">
+          Description:
+          <input type="text" name="description" value={description} onChange={handleInputChange} className="form-input" />
+        </label>
+        Photo:
+        <input
+          type="file"
+          name="photo"
+          onChange={handleInputChange}
+          className="form-input"
+        />
+        <label className="form-label">
+          Urgency:
+          <div className="urgency-radio">
               <label>
                 <input
                   type="radio"
                   name="urgency"
                   value="Low"
-                  checked={formData.urgency === 'Low'}
+                  checked={urgency === 'Low'}
                   onChange={handleInputChange}
                 />
                 Low
@@ -279,7 +253,7 @@ function Ticket() {
                   type="radio"
                   name="urgency"
                   value="Medium"
-                  checked={formData.urgency === 'Medium'}
+                  checked={urgency === 'Medium'}
                   onChange={handleInputChange}
                 />
                 Medium
@@ -289,7 +263,7 @@ function Ticket() {
                   type="radio"
                   name="urgency"
                   value="High"
-                  checked={formData.urgency === 'High'}
+                  checked={urgency === 'High'}
                   onChange={handleInputChange}
                 />
                 High
