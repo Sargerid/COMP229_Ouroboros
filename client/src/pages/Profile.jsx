@@ -183,33 +183,7 @@ function Profile() {
           </div>
         )}</center>
       </div>
-      <center><h2>YOUR TICKETS</h2></center>
-      <center><table className="ticket-table">
-        <thead>
-          <tr>
-            <th>Ticket</th>
-            <th>Description</th>
-            <th>Status</th>
-            <th>Created</th>
-            <th>Photo</th>
-            <th>Posted By</th>
-            <th>Urgency</th>
-          </tr>
-        </thead>
-        <tbody>
-          {tickets.map((ticket, index) => (
-            <tr key={index}>
-              <td>{ticket.ticket}</td>
-              <td>{ticket.description}</td>
-              <td>{ticket.status}</td>
-              <td>{ticket.created}</td>
-              <td>{ticket.photo}</td>
-              <td>{ticket.postedBy}</td>
-              <td>{ticket.urgency}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table></center>
+      
     </div>
   );
 }
