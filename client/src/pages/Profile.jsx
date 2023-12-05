@@ -20,18 +20,27 @@ function Profile() {
 
   const history = useNavigate();
 
-  const [tickets, setTickets] = useState([
-    {
-      ticket: '1234',
-      description: 'Sample description',
-      status: 'Open',
-      created: '2023-11-23',
-      photo: 'photo',
-      postedBy: 'User123',
-      urgency: 'High',
-    },
-    // just example
-  ]);
+  const updateEmail = async () => {
+    try {
+      getCookie('access_token');
+      const token = getCookie('access_token');
+      const decodedToken = jwtDecode(token);
+      const id = decodedToken._id;
+
+      const response = await fetch(`http://localhost:3000/api/users/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,          
+        },
+        body: JSON.stringify({ email }),
+      });
+      const data = await response.json();
+      console.log(data);
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
 
   const handleEmailChange = (e) => {
     setEmail(e.target.value);
@@ -76,7 +85,8 @@ function Profile() {
   };
 
   const handleSaveEmail = () => {
-    setEmailEditMode(false);
+  setEmailEditMode(false);
+  updateEmail();
   };
 
   const handleSavePassword = () => {
@@ -112,6 +122,9 @@ function Profile() {
   useEffect(() => {
     if (getCookie('access_token')) {
         setIsAuthenticated(true);
+        const token = getCookie('access_token');
+        const decodedToken = jwtDecode(token);
+        console.log(decodedToken);
         getUserLoggedIn();
     }
   });
