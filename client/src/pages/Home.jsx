@@ -2,11 +2,16 @@ import { useState, useEffect } from 'react'
 import reactLogo from '../assets/react.svg'
 import viteLogo from '/vite.svg'
 import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from "jwt-decode";
 import './Home.css'
+import { get } from 'mongoose';
+
 
 function Home() {
     const [count, setCount] = useState(0);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [userLoggedIn, setUserLoggedIn] = useState('');
+
     const history = useNavigate();
 
     const handleSignOut = () => {
@@ -26,9 +31,21 @@ function Home() {
         return null;
     };
 
+    const getUserLoggedIn = async () => {
+        try {
+          const token = getCookie('access_token');
+          const decodedToken = jwtDecode(token);
+          const name = decodedToken.name;
+          setUserLoggedIn(name);
+        } catch (error) {
+          console.error('Error during authentication:', error.message); 
+        }
+      };
+
     useEffect(() => {
         if (getCookie('access_token')) {
             setIsAuthenticated(true);
+            getUserLoggedIn();
         }
     });
 
@@ -40,6 +57,7 @@ function Home() {
             </header>
             <nav>
                <a href='/'><img className="logo" src="/Logo/1.png" /></a> 
+               <p>Welcome {userLoggedIn}!</p>
 
                 <ul>
                     <li> <a href="/">Home Page </a></li>
@@ -54,7 +72,7 @@ function Home() {
                 </ul>
             </nav>
             <main>
-                <p><span class="Incident"> Incident Management </span>
+                <p><span className="Incident"> Incident Management </span>
                     Incident management for buildings refers to the systematic process and protocols in place to address and respond to various incidents or emergencies that may occur within a building or a built environment. These incidents can range from natural disasters like earthquakes, fires, floods, or severe weather events to human-made emergencies such as power outages, gas leaks, security breaches, or medical emergencies.
 
                     The primary objectives of incident management for buildings include:

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from "jwt-decode";
+
 import './Profile.css';
 
 function Profile() {
@@ -14,6 +16,8 @@ function Profile() {
   const [nameEditMode, setNameEditMode] = useState(false);
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userLoggedIn, setUserLoggedIn] = useState('');
+
   const history = useNavigate();
 
   const [tickets, setTickets] = useState([
@@ -94,9 +98,21 @@ function Profile() {
     return null;
   };
 
+  const getUserLoggedIn = async () => {
+    try {
+      const token = getCookie('access_token');
+      const decodedToken = jwtDecode(token);
+      const name = decodedToken.name;
+      setUserLoggedIn(name);
+    } catch (error) {
+      console.error('Error during authentication:', error.message); 
+    }
+  };
+
   useEffect(() => {
     if (getCookie('access_token')) {
         setIsAuthenticated(true);
+        getUserLoggedIn();
     }
   });
 
@@ -117,6 +133,7 @@ function Profile() {
           <a href='/'>
             <img className="logo" src="/Logo/1.png" alt="Logo" />
           </a>
+          <p>Welcome {userLoggedIn}!</p>
           <ul>
                     <li> <a href="/">Home Page </a></li>
                     <li style={{display: isAuthenticated ? "block" : "none"}}> <a href="/profile">Profile</a> </li>
