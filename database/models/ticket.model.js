@@ -12,6 +12,7 @@ const ticketSchema = new Schema({
     updated: Date,
     photo: { data: Buffer, contentType: String },
     postedBy: { type: Schema.ObjectId, ref: 'User' },
+    postedByName: String,
     urgency: {
         type: String,
         default: 'Low',

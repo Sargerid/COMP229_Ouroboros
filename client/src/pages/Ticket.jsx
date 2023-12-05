@@ -11,6 +11,11 @@ function Ticket() {
   const [photo, setPhoto] = useState(null);
   const [urgency, setUrgency] = useState('');
 
+  const [editTicketId, setEditTicketId] = useState(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editUrgency, setEditUrgency] = useState('');
+
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const history = useNavigate();
@@ -51,14 +56,11 @@ function Ticket() {
               const data = await response.json();
               console.log('Fetched tickets data:', data);
   
-              // Check if the user is an admin
               const isAdmin = decodedToken.role === 'Admin';
   
               if (isAdmin) {
-                // If the user is an admin, set all tickets
                 setTickets(data.result);
               } else {
-                // If the user is not an admin, filter tickets based on user ID
                 const userTickets = data.result.filter(ticket => ticket.postedBy === userId);
                 setTickets(userTickets);
               }
@@ -84,17 +86,16 @@ function Ticket() {
     const { name, value, type } = e.target;
   
     if (type === 'file') {
-      // Handle file input differently, e.g., convert to Base64
       const file = e.target.files[0];
   
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPhoto(reader.result); // Update the 'photo' state with Base64 representation of the file
+        setPhoto(reader.result); 
       };
   
       reader.readAsDataURL(file);
     } else {
-      // Handle other input types as usual
+      
       switch (name) {
         case 'title':
           setTitle(value);
@@ -115,22 +116,23 @@ function Ticket() {
     e.preventDefault();
   
     try {
-      const token = getCookie('access_token'); // Retrieve the token
-      //decode the token
+      const token = getCookie('access_token'); 
       const decodedToken = jwtDecode(token);
       const userId = decodedToken._id;
+      const userName = decodedToken.name;
   
       const response = await fetch('http://localhost:3000/api/tickets', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, // Use the retrieved token here
+          'Authorization': `Bearer ${token}`, 
         },
         body: JSON.stringify({
           title,
           description,
           photo,
           urgency,
+          postedByName: userName,
           postedBy: userId,
         }),
       });
@@ -159,6 +161,83 @@ function Ticket() {
     history('/signin');
   };
 
+  const formatDateTime = (dateTimeString) => {
+    const options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', timeZoneName: 'short' };
+    return new Date(dateTimeString).toLocaleString(undefined, options);
+  };
+
+  const removeTicket = async (id) => {
+    try {
+      const token = getCookie('access_token');
+      const response = await fetch(`http://localhost:3000/api/tickets/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Deleted ticket:', data);
+        window.location.reload();
+      } else {
+        console.error('Failed to delete ticket:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error during ticket deletion:', error.message);
+    }
+  };
+
+  const handleEditClick = (ticketId) => {
+    setEditTicketId(ticketId);
+  };
+
+  const handleCancelEdit = () => {
+    setEditTicketId(null);
+  };
+
+  const urgencyOptions = ['Low', 'Medium', 'High'];
+
+  const handleSaveEdit = async (editedTicket) => {
+  try {
+    const token = getCookie('access_token');
+    
+    if (!urgencyOptions.includes(editedTicket.urgency)) {
+      console.error('Invalid urgency value:', editedTicket.urgency);
+      return;
+    }
+
+    if (!editedTicket.description || !editedTicket.title) {
+      console.error('Description and title are required.');
+      return;
+    }
+
+    const response = await fetch(`http://localhost:3000/api/tickets/${editedTicket._id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        title: editedTicket.title,
+        description: editedTicket.description,
+        urgency: editedTicket.urgency,
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log('Updated ticket:', data);
+      setEditTicketId(null);
+      window.location.reload();
+    } else {
+      console.error('Failed to update ticket:', response.statusText);
+    }
+  } catch (error) {
+    console.error('Error during ticket update:', error.message);
+  }
+};
   
   return (
     <div className='TicketPage'>
@@ -187,9 +266,9 @@ function Ticket() {
             <tr>
               <th></th>
               <th>Number</th>
+              <th>Title</th>
               <th>Description</th>
               <th>Date created</th>
-              <th>Date Modified</th>
               <th>Photo</th>
               <th>Posted By</th>
               <th>Status</th>
@@ -197,27 +276,46 @@ function Ticket() {
             </tr>
           </thead>
           <tbody>
-        {tickets.map((ticket, index) => (
-          <tr key={index}>
-            {/* Render ticket data in table rows */}
+      {tickets.map((ticket, index) => (
+        <tr key={index}>
+          <td>
+            <div className="rowData">
+              <button onClick={() => removeTicket(ticket._id)}>Remove</button>
+              <button onClick={() => handleEditClick(ticket._id)}>Modify</button>
+            </div>
+          </td>
+          <td>{ticket._id}</td>
+          <td>{editTicketId === ticket._id ? <input type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} /> : ticket.title}</td>
+          <td>{editTicketId === ticket._id ? <input type="text" value={editDescription} onChange={(e) => setEditDescription(e.target.value)} /> : ticket.description}</td>
+          <td>{formatDateTime(ticket.created)}</td>
+          <td><img src={ticket.photo ? `data:${ticket.photo.contentType};base64,${ticket.photo.data}` : ''} alt="Ticket Photo" /></td>
+          <td>{ticket.postedByName}</td>
+          <td>{ticket.status}</td>
+          <td>
+            {editTicketId === ticket._id ? (
+              <select value={editUrgency} onChange={(e) => setEditUrgency(e.target.value)}>
+                {urgencyOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              ticket.urgency
+            )}
+          </td>
+          {editTicketId === ticket._id && (
             <td>
-              <div className="rowData">
-                <button>Remove</button>
-                <button>Modify</button>
-              </div>
+              <button onClick={() => handleSaveEdit({ ...ticket, title: editTitle, description: editDescription, urgency: editUrgency })}>Save</button>
+              <button onClick={handleCancelEdit}>Cancel</button>
             </td>
-            <td>{ticket._id}</td>
-            <td>{ticket.description}</td>
-            <td>{ticket.created}</td>
-            <td>{ticket.dateModified}</td>
-            <td><img src={ticket.photo ? `data:${ticket.photo.contentType};base64,${ticket.photo.data}` : ''} alt="Ticket Photo" /></td>
-            <td>{ticket.postedBy}</td>
-            <td>{ticket.status}</td>
-            <td>{ticket.urgency}</td>
-          </tr>
-        ))}
-      </tbody>
+          )}
+        </tr>
+      ))}
+    </tbody>
         </table>
+
+        <p><span className="Ticket">Create New Ticket</span></p>
 
         <form onSubmit={handleSubmit} className="form-container">
         <label className="form-label">
