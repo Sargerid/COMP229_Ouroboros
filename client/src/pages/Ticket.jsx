@@ -17,6 +17,7 @@ function Ticket() {
   const [editUrgency, setEditUrgency] = useState('');
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userLoggedIn, setUserLoggedIn] = useState('');
 
   const history = useNavigate();
   const getCookie = (name) => {
@@ -30,6 +31,18 @@ function Ticket() {
     return null;
   };
 
+  const getUserLoggedIn = async () => {
+    try {
+      const token = getCookie('access_token');
+      const decodedToken = jwtDecode(token);
+      const name = decodedToken.name;
+      setUserLoggedIn(name);
+    } catch (error) {
+      console.error('Error during authentication:', error.message); 
+    }
+  };
+
+
   useEffect(() => {
     const checkAuthAndFetchTickets = async () => {
       try {
@@ -40,6 +53,7 @@ function Ticket() {
   
           const decodedToken = jwtDecode(token);
           console.log('Decoded token:', decodedToken);
+          getUserLoggedIn();
   
           if (decodedToken) {
             const userId = decodedToken._id;
@@ -248,6 +262,7 @@ function Ticket() {
         <a href='/'>
           <img className="logo" src="/Logo/1.png" alt="Logo" />
         </a>
+        <p className="welcome">Welcome {userLoggedIn}!</p>
         <ul>
           <li> <a href="/">Home Page </a></li>
           <li style={{display: isAuthenticated ? "block" : "none"}}> <a href="/profile">Profile</a> </li>
