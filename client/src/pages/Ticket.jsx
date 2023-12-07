@@ -2,13 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom'; 
 import { jwtDecode } from "jwt-decode";
 import './Ticket.css';
-import { get } from 'mongoose';
 
 function Ticket() {
   const [tickets, setTickets] = useState([]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [photo, setPhoto] = useState(null);
+  const [photo, setPhoto] = useState('');
   const [urgency, setUrgency] = useState('');
 
   const [editTicketId, setEditTicketId] = useState(null);
@@ -69,6 +68,12 @@ function Ticket() {
             if (response.ok) {
               const data = await response.json();
               console.log('Fetched tickets data:', data);
+
+              data.result.forEach((ticket) => {
+                if (ticket.photo) {
+                  console.log('Ticket photo:', ticket.photo);
+                }
+              });
   
               const isAdmin = decodedToken.role === 'Admin';
   
@@ -96,33 +101,20 @@ function Ticket() {
     checkAuthAndFetchTickets();
   }, [history]);
 
-  const handleInputChange = (e) => {
-    const { name, value, type } = e.target;
+  const handleInputChange = async (e) => {
+    const { name, value, files } = e.target;
   
-    if (type === 'file') {
-      const file = e.target.files[0];
-  
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhoto(reader.result); 
-      };
-  
-      reader.readAsDataURL(file);
-    } else {
-      
-      switch (name) {
-        case 'title':
-          setTitle(value);
-          break;
-        case 'description':
-          setDescription(value);
-          break;
-        case 'urgency':
-          setUrgency(value);
-          break;
-        default:
-          break;
-      }
+    if (name === 'title') {
+      setTitle(value);
+    } else if (name === 'description') {
+      setDescription(value);
+    } else if (name === 'photo') {
+      const file = files[0];
+      const base64 = await convertToBase64(file);
+      console.log('Base64:', base64);
+      setPhoto(base64);
+    } else if (name === 'urgency') {
+      setUrgency(value);
     }
   };
   
@@ -130,7 +122,7 @@ function Ticket() {
     e.preventDefault();
   
     try {
-      const token = getCookie('access_token'); 
+      const token = getCookie('access_token');
       const decodedToken = jwtDecode(token);
       const userId = decodedToken._id;
       const userName = decodedToken.name;
@@ -139,12 +131,12 @@ function Ticket() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, 
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
           title,
           description,
-          photo,
+          photo, // If photo is a base64 string, you can include it directly
           urgency,
           postedByName: userName,
           postedBy: userId,
@@ -154,12 +146,12 @@ function Ticket() {
       if (response.ok) {
         const newTicket = await response.json();
         console.log('New Ticket:', newTicket);
-    
+  
         setTitle('');
         setDescription('');
         setPhoto(null);
         setUrgency('');
-        //refresh the page
+        // Refresh the page
         window.location.reload();
       } else {
         console.error('Failed to create ticket:', response.statusText);
@@ -168,6 +160,8 @@ function Ticket() {
       console.error('Error during ticket submission:', error.message);
     }
   };
+  
+  
   
   const handleSignOut = () => {
     document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
@@ -252,6 +246,19 @@ function Ticket() {
     console.error('Error during ticket update:', error.message);
   }
 };
+
+function convertToBase64(file){
+  return new Promise((resolve, reject) => {
+    const fileReader = new FileReader();
+    fileReader.readAsDataURL(file);
+    fileReader.onload = () => {
+      resolve(fileReader.result)
+    };
+    fileReader.onerror = (error) => {
+      reject(error)
+    }
+  })
+}
   
   return (
     <div className='TicketPage'>
@@ -303,7 +310,9 @@ function Ticket() {
           <td>{editTicketId === ticket._id ? <input type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} /> : ticket.title}</td>
           <td>{editTicketId === ticket._id ? <input type="text" value={editDescription} onChange={(e) => setEditDescription(e.target.value)} /> : ticket.description}</td>
           <td>{formatDateTime(ticket.created)}</td>
-          <td><img src={ticket.photo ? `data:${ticket.photo.contentType};base64,${ticket.photo.data}` : ''} alt="Ticket Photo" /></td>
+          <td>
+           {ticket.photo ? (<img className="ticket-image" src={ticket.photo} alt="Ticket" /> ) : ( <p>No photo available</p>)}
+          </td>
           <td>{ticket.postedByName}</td>
           <td>{ticket.status}</td>
           <td>
@@ -332,7 +341,7 @@ function Ticket() {
 
         <p><span className="Ticket">Create New Ticket</span></p>
 
-        <form onSubmit={handleSubmit} className="form-container">
+        <form onSubmit={handleSubmit} className="form-container" encType="multipart/form-data">
         <label className="form-label">
           Title:
           <input type="text" name="title" value={title} onChange={handleInputChange} className="form-input" />

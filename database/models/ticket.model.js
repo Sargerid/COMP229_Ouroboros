@@ -10,7 +10,7 @@ const ticketSchema = new Schema({
     },
     created: { type: Date, default: Date.now },
     updated: Date,
-    photo: { data: Buffer, contentType: String },
+    photo: String,
     postedBy: { type: Schema.ObjectId, ref: 'User' },
     postedByName: String,
     urgency: {
