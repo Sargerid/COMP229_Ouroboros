@@ -5,9 +5,7 @@
   "scripts": {
     "generate-jwt": "node generatejwtsecret.js",
     "start": "(node init.js) && (node ./bin/www)",
-    "build-start": "(cd client) && (npm run build) && (cd ..) && (npm run start)",
-    "dev-client2": "(cd client2) && (npm run dev)",
-    "build-start-client2": "(cd client2) && (npm run build) && (cd ..) && (npm run start)"
+    "build-start": "(cd client) && (npm run build) && (cd ..) && (npm run start)"
   },
   "dependencies": {
     "body-parser": "^1.20.2",

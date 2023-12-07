@@ -1,0 +1,1 @@
+web: npm run generate-jwt && npm run build-start
