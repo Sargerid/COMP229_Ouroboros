@@ -176,7 +176,7 @@ function Ticket() {
   const removeTicket = async (id) => {
     try {
       const token = getCookie('access_token');
-      const response = await fetch(`https://incident-management-system-798a715d0c26.herokuapp.com/tickets/${id}`, {
+      const response = await fetch(`https://incident-management-system-798a715d0c26.herokuapp.com/api/tickets/${id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -220,7 +220,7 @@ function Ticket() {
       return;
     }
 
-    const response = await fetch(`https://incident-management-system-798a715d0c26.herokuapp.com/tickets/${editedTicket._id}`, {
+    const response = await fetch(`https://incident-management-system-798a715d0c26.herokuapp.com/api/tickets/${editedTicket._id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
