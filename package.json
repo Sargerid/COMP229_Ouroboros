@@ -2,6 +2,9 @@
   "name": "comp229group2a",
   "version": "0.0.0",
   "private": true,
+  "engines": {
+    "node": "20.9.0"
+    },
   "scripts": {
     "generate-jwt": "node generatejwtsecret.js",
     "start": "(node init.js) && (node ./bin/www)",
