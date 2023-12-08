@@ -25,7 +25,7 @@ const router = createBrowserRouter([
     element: <Ticket/>,
   },
   {
-    path: "/Signin",
+    path: "/signin",
     element: <Signin/>,
   },
   {
