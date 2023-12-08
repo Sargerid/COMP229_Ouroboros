@@ -7,7 +7,7 @@ import Home from './pages/Home.jsx'
 import Signin from "./pages/Signin.jsx";
 import Signup from "./pages/Signup.jsx";
 import Ticket from "./pages/Ticket.jsx";
-import Profile from "./pages/profile.jsx";
+import Profile from "./pages/Profile.jsx";
 import './index.css'
 
 // Create routes using React Router
