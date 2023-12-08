@@ -136,7 +136,7 @@ function Ticket() {
         body: JSON.stringify({
           title,
           description,
-          photo, // If photo is a base64 string, you can include it directly
+          photo, 
           urgency,
           postedByName: userName,
           postedBy: userId,
@@ -151,7 +151,6 @@ function Ticket() {
         setDescription('');
         setPhoto(null);
         setUrgency('');
-        // Refresh the page
         window.location.reload();
       } else {
         console.error('Failed to create ticket:', response.statusText);
@@ -177,7 +176,7 @@ function Ticket() {
   const removeTicket = async (id) => {
     try {
       const token = getCookie('access_token');
-      const response = await fetch(`http://localhost:3000/api/tickets/${id}`, {
+      const response = await fetch(`https://incident-management-system-798a715d0c26.herokuapp.com/tickets/${id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -221,7 +220,7 @@ function Ticket() {
       return;
     }
 
-    const response = await fetch(`http://localhost:3000/api/tickets/${editedTicket._id}`, {
+    const response = await fetch(`https://incident-management-system-798a715d0c26.herokuapp.com/tickets/${editedTicket._id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
