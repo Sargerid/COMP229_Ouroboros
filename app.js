@@ -16,7 +16,7 @@ const authRouter = require('./routes/auth.routes');
 const app = express();
 
 app.use(cors({ 
-  origin: ["http://localhost:3000", "http://localhost:5173", "*"],
+  origin: ["http://localhost:3000", "http://localhost:5173", "*", "https://incident-management-system-798a715d0c26.herokuapp.com/"],
   credentials: true,
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   optionsSuccessStatus: 204,
