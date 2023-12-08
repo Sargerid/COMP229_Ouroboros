@@ -9,7 +9,7 @@ function Signin() {
 
   const handleSignIn = async () => {
     try {
-      const response = await fetch('http://localhost:3000/auth/signin', {
+      const response = await fetch('https://incident-management-system-798a715d0c26.herokuapp.com/auth/signin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
