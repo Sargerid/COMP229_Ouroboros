@@ -127,7 +127,7 @@ function Ticket() {
       const userId = decodedToken._id;
       const userName = decodedToken.name;
   
-      const response = await fetch('http://localhost:3000/api/tickets', {
+      const response = await fetch('https://incident-management-system-798a715d0c26.herokuapp.com/api/tickets', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
