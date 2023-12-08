@@ -1,1 +1,1 @@
-web: npm run generate-jwt && npm run build-start
+web: npm install && npm run generate-jwt && (cd client && npm install && npm run build && cd ..) && npm run start
