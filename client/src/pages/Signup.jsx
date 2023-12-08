@@ -42,7 +42,7 @@ function Signup() {
   <a id="logo" href='/'><img className="logo" src="/Logo/1.png" width="150" height="150"/></a> 
     <h3 id="logintext">Sign up</h3>
       <div class="input">
-    <label className="username" id="usernametext">Email:</label>
+    <label className="username" id="usernametext">Name:</label>
   
     <input type="text" id="username"  name="username" value={username} onChange={(e) => setUsername(e.target.value)}/>
       </div>
