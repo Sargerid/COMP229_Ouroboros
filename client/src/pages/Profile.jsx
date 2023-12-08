@@ -27,7 +27,7 @@ function Profile() {
       const decodedToken = jwtDecode(token);
       const id = decodedToken._id;
 
-      const response = await fetch(`http://localhost:3000/api/users/${id}`, {
+      const response = await fetch(`https://incident-management-system-798a715d0c26.herokuapp.com/api/users/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
