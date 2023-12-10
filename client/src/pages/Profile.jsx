@@ -36,7 +36,14 @@ function Profile() {
         body: JSON.stringify({ email }),
       });
       const data = await response.json();
-      console.log(data);
+      
+      if (data.error) {
+        alert(data.error);
+      }
+      if(data.success) {
+        alert("Email updated successfully!");
+        handleSignOut();
+      }
     } catch (error) {
       console.error('Error:', error);
     }
