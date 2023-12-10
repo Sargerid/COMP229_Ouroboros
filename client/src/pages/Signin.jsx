@@ -20,16 +20,14 @@ function Signin() {
 
       if (!response.ok) {
         throw new Error('Invalid credentials'); 
+        alert("Invalid credentials");
       }
 
       const user = await response.json();
       if (user) {
         navigateTo('/');
       }
-      else
-      {
-        alert("Invalid credentials");
-      }
+      
     } catch (error) {
       console.error('Login failed:', error.message);
     }
