@@ -35,7 +35,7 @@ function Signin() {
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('An error occurred. Please try again.'); // Show a generic error message
+      alert('An error occurred. Please try again.'); 
     }
   };
 
