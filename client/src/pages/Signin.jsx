@@ -14,18 +14,24 @@ function Signin() {
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', 
+        credentials: 'include',
         body: JSON.stringify({ email: username, password }),
       });
-
-      if (response.status >= 200 && response.status < 300) {
+  
+      const data = await response.json();
+  
+      if (data.success === true) {
         navigateTo('/');
       } else {
-        alert('Incorrect username or password');
+        if (data.success === false) {
+          alert("Invalid username or password");
+        } else {
+          alert('Unknown error occurred');
+        }
       }
-    }
-    catch (error) {
+    } catch (error) {
       console.error('Error:', error);
+      alert('An error occurred. Please try again.'); // Show a generic error message
     }
   };
 
