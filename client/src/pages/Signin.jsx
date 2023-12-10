@@ -18,7 +18,7 @@ function Signin() {
         body: JSON.stringify({ email: username, password }),
       });
 
-      if (response.status === 200) {
+      if (response.status >= 200 && response.status < 300) {
         navigateTo('/');
       } else {
         alert('Incorrect username or password');
