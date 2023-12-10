@@ -395,8 +395,7 @@ function convertToBase64(file){
         </form>
       </main>
       <footer>
-        Copyright &copy; 2023
-        <a href="mailto:rcaraba@centennialcollege.ca">kjoghtap@centennialcollege.ca</a>
+        Copyright &copy; 2023 - Group 2 Fall 2023
       </footer>
     </div>
   );
