@@ -23,8 +23,13 @@ function Signin() {
       }
 
       const user = await response.json();
-      console.log('User logged in:', user);
-      navigateTo('/');
+      if (user) {
+        navigateTo('/');
+      }
+      else
+      {
+        alert("Invalid credentials");
+      }
     } catch (error) {
       console.error('Login failed:', error.message);
     }

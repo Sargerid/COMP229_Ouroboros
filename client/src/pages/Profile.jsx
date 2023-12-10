@@ -49,6 +49,65 @@ function Profile() {
     }
   };
 
+  const updatePassword = async () => {
+    try {
+      getCookie('access_token');
+      const token = getCookie('access_token');
+      const decodedToken = jwtDecode(token);
+      const id = decodedToken._id;
+
+      const response = await fetch(`https://incident-management-system-798a715d0c26.herokuapp.com/api/users/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,          
+        },
+        body: JSON.stringify({ password }),
+      });
+      const data = await response.json();
+      
+      if (data.error) {
+        alert(data.error);
+      }
+      if(data.success) {
+        alert("Password updated successfully!");
+        handleSignOut();
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+  
+  const updateName = async () => {
+    try {
+      getCookie('access_token');
+      const token = getCookie('access_token');
+      const decodedToken = jwtDecode(token);
+      const id = decodedToken._id;
+
+      const response = await fetch(`https://incident-management-system-798a715d0c26.herokuapp.com/api/users/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,          
+        },
+        body: JSON.stringify({ name }),
+      });
+      const data = await response.json();
+      
+      if (data.error) {
+        alert(data.error);
+      }
+      if(data.success) {
+        alert("Name updated successfully!");
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+
+
   const handleEmailChange = (e) => {
     setEmail(e.target.value);
   };
@@ -98,10 +157,12 @@ function Profile() {
 
   const handleSavePassword = () => {
     setPasswordEditMode(false);
+    updatePassword();
   };
 
   const handleSaveName = () => {
     setNameEditMode(false);
+    updateName();
   };
 
   const getCookie = (name) => {
