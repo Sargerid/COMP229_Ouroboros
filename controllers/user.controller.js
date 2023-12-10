@@ -76,6 +76,25 @@ const UserController = {
             _id: userId
         });
     },
+    async editUser (req, res, { User }) {
+        const {userID} = req.params;
+        let {name, email, password} = req.body;
+
+        email = email ? email.toLowerCase() : '';
+
+        const user = await User.findOne({_id: userID});
+
+        if (name) user.name = name;
+        if (email) user.email = email;
+        if (password) {
+            const { hashedPassword } = await hashPassword(password, user.salt);
+            user.hashedPassword = hashedPassword;
+        }
+
+        user.updated = new Date();
+
+        return await user.save();
+    }
 };
 
 module.exports = UserController;
