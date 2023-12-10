@@ -25,8 +25,12 @@ function Signin() {
       } else {
         if (data.success === false) {
           alert("Invalid username or password");
+          setUsername('');
+          setPassword('');
         } else {
           alert('Unknown error occurred');
+          setUsername('');
+          setPassword('');
         }
       }
     } catch (error) {
