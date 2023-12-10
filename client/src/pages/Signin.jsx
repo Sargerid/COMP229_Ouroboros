@@ -18,18 +18,14 @@ function Signin() {
         body: JSON.stringify({ email: username, password }),
       });
 
-      if (!response.ok) {
-        throw new Error('Invalid credentials');
-      }
-
-      const user = await response.json();
-      if (user) {
+      if (response.status === 200) {
         navigateTo('/');
+      } else {
+        alert('Incorrect username or password');
       }
-
-    } catch (error) {
-      console.error('Login failed:', error.message);
-      alert("Invalid credentials"); 
+    }
+    catch (error) {
+      console.error('Error:', error);
     }
   };
 
