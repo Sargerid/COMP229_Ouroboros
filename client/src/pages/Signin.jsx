@@ -19,17 +19,17 @@ function Signin() {
       });
 
       if (!response.ok) {
-        throw new Error('Invalid credentials'); 
-        alert("Invalid credentials");
+        throw new Error('Invalid credentials');
       }
 
       const user = await response.json();
       if (user) {
         navigateTo('/');
       }
-      
+
     } catch (error) {
       console.error('Login failed:', error.message);
+      alert("Invalid credentials"); 
     }
   };
 
